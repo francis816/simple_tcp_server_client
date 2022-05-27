@@ -7,6 +7,7 @@
 
 #define SERVER_PORT 9527
 
+
 void sys_err(const char* string)
 {
 	perror(string);
@@ -44,21 +45,44 @@ int main()
 
 	
 	// read data from client side, then convert to capital letters, and write back to client 
-	int result;
-	char buffer[BUFSIZ]; // system macro defaults to 4096 or 8192
 	while(1)
 	{
 
-		result = read(connectfd, buffer, sizeof(buffer));
-		write(STDOUT_FILENO, buffer, result);
+		char buffer[64] = { 0 };
+		int question = read(connectfd, buffer, sizeof(buffer)); // read from client
+		write(STDOUT_FILENO, buffer, question); // write to screen
 
-		for (int i = 0; i < result; i++)
+		double num1 = 0;
+		double num2 = 0;
+		char ch = 0;
+
+		sscanf(buffer, "Client: What is %lf %c %lf = ? \n", &num1, &ch, &num2);
+
+		double result = 0;
+
+		switch(ch)
 		{
-			buffer[i] = toupper(buffer[i]);
-
+		case '+':
+			result = num1 + num2;
+			break;
+		case '-':
+			result = num1 - num2;
+			break;
+		case '*':
+			result = num1 * num2;
+			break;
+		case '/':
+			result = num1 / num2;
+			break;
+		default:
+			break;
 		}
 
-		write(connectfd, buffer, result);
+		char result_buffer[64] = { 0 };
+		sprintf(result_buffer, "----Server replied: %.2lf %c %.2lf = %.2lf\n", num1, ch, num2, result);
+
+
+		write(connectfd, result_buffer, sizeof(result_buffer)); // write to client
 	}
 
 	close(connectfd);
